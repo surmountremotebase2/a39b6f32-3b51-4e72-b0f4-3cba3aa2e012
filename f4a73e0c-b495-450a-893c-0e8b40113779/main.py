@@ -1,9 +1,13 @@
+from surmount.base_class import Strategy, TargetAllocation
+from surmount.data import Dividend, InstitutionalOwnership
+from surmount.logging import log
+
 class TradingStrategy(Strategy):
     def __init__(self):
         # Automatically populate tickers based on predefined criteria
         self.tickers = self.get_high_dividend_stocks()
 
-        # Initialize data with actual objects (not dicts) to avoid attribute errors
+        # Initialize data objects directly
         self.data_list = [
             Dividend(ticker) for ticker in self.tickers
         ] + [
@@ -12,22 +16,32 @@ class TradingStrategy(Strategy):
 
     @staticmethod
     def get_high_dividend_stocks():
-        # Placeholder: Simulating the result of an external query
-        return ["AAPL", "MSFT", "JNJ", "PG"]  # Replace with dynamic fetching logic
+        # Placeholder for a dynamic query or API call to fetch high-dividend stocks
+        return ["AAPL", "MSFT", "JNJ", "PG"]
+
+    @property
+    def interval(self):
+        return "1day"  # Daily analysis for this strategy
+
+    @property
+    def assets(self):
+        return self.tickers  # List of tickers
 
     @property
     def data(self):
-        # Return list of data objects for analysis
-        return self.data_list
+        return self.data_list  # Return initialized data objects
 
     def run(self, data):
-        # Initialize equal allocation across all assets
+        # Initialize equal allocation across assets
         allocation_dict = {ticker: 1 / len(self.tickers) for ticker in self.tickers}
 
-        # Analyze dividend and institutional ownership data
+        # Analyze the data
         for data_obj in self.data_list:
-            if not data.get(data_obj):
+            key = (data_obj.__class__.__name__.lower(), data_obj.ticker)
+
+            # Validate if data is available
+            if not data.get(key):
                 log(f"Warning: No data available for {data_obj.ticker}. Review allocation.")
 
-        # Placeholder for allocation strategy based on dividend yield and stability
+        # Placeholder for advanced allocation logic
         return TargetAllocation(allocation_dict)
